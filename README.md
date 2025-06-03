@@ -1,43 +1,129 @@
 # Documinty
 
-TODO: Delete this and the text below, and describe your gem
+![Alt text describing image](assets/logo.png)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/documinty`. To experiment with that code, run `bin/console` for an interactive prompt.
+**Documinty** (alias `dty`) is a lightweight CLI tool to help you document your Ruby codebase as you build features. It lets you:
+
+- Create and manage **features**
+- Tag files with a **node type**, **description**, and **methods**
+- Query documentation by file or by feature
+- Visualize which files belong to a feature (grouped by directory)
+- Search for features by substring
+
+Everything you record lives under a `.documinty/` folder in your project. You can version it alongside your code, making documentation part of your workflow.
+
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+### Prerequisites
 
-Install the gem and add to the application's Gemfile by executing:
+- Ruby ≥ 3.1
+- Bundler (optional, but recommended)
+
+### From RubyGems
 
 ```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+gem install documinty
+# or, if you prefer the short alias:
+# gem install dty
+
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+### From Git(development version)
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```
+git clone git@github.com:yourusername/documinty.git
+cd documinty
+```
+
+Build and install locally
+```
+bundle install
+bundle exec rake build
+gem install pkg/documinty-<VERSION>.gem
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
 
-## Development
+### 1. Go into your existing codebase
+```
+cd path/to/your-app
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+### 2. Initialize Documinty (creates .documinty/)
+```
+dty init --codebase your-app
+```
+### 3. Create a feature called "user-auth"
+```
+dty feat user-auth
+```
+### 4. Tag a file under "user-auth" as a controller, prompt for description & methods
+```
+dty doc app/controllers/sessions_controller.rb -f user-auth -n controller
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+#   • You’ll be prompted:
+#     Enter a brief description for this node⚙️:
+#     (e.g.) "Handles login/logout flows"
+#
+#     Enter comma-separated methods for this node🛠️:
+#     (e.g.) :new, :create, :destroy
+```
+### 5. View documentation for that file
+```
+dty show app/controllers/sessions_controller.rb
+```
+### 6. List all defined features
+```
+dty features
+```
+### 7. Show all files under "user-auth"
+```
+dty list_f user-auth
+```
+### 8. Show file structure under "user-auth"
+```
+dty involved_f user-auth
+```
+### 9. Search for features that contain "user"
+```
+dty search_f user
+```
 
-## Contributing
+### Project layout
+```
+.
+├── exe/
+│   ├── documinty      # primary executable stub
+│   └── dty            # short alias stub
+├── lib/
+│   └── documinty/
+│       ├── cli.rb     # Thor CLI definitions
+│       └── store.rb   # YAML-backed storage logic
+│   └── documinty.rb   # loads version and CLI
+│   └── documinty/version.rb
+├── .documinty/        # created once you run `dty init`
+│   ├── config.yml
+│   └── features/      # per-feature YAML files live here
+├── Rakefile           # builds the gem
+├── documinty.gemspec  # gemspec (metadata + dependencies)
+├── LICENSE.txt
+└── README.md
+```
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/documinty. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/documinty/blob/main/CODE_OF_CONDUCT.md).
+### Contributing
+1 - Fork the repository
 
-## License
+2 - Create a new branch (git checkout -b my-feature)
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+3 - Make your changes and add tests if applicable
 
-## Code of Conduct
+4 - Commit, push, and open a Pull Request
 
-Everyone interacting in the Documinty project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/documinty/blob/main/CODE_OF_CONDUCT.md).
+5 - We’ll review and merge!
+
+### License
+License
+This project is licensed under the MIT License.
+See LICENSE.txt for details.
