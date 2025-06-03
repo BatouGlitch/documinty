@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "A codebase auto documentation tool."
   spec.description   = "This gem will enable developers to document their classes and features"
-  spec.homepage      = "https://github.com/yourusername/carreromarcel"
+  spec.homepage      = "https://github.com/BatouGlitch/documinty"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 
