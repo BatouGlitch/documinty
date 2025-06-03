@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+
+require "documinty"
+Documinty::CLI.start(ARGV)
