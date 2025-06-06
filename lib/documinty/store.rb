@@ -103,6 +103,33 @@ module Documinty
       data['entries'] || []
     end
 
+    # Add one or more methods to a documented file under a given feature
+    # @param path [String]       relative file path
+    # @param feature [String]    feature name (must already exist on that entry)
+    # @param new_methods [Array<Symbol>]  list of symbols to add
+    # @return [Hash] the updated entry
+    def add_methods(path:, feature:, new_methods:)
+      file = feature_file(feature)
+      raise Error, "Feature '#{feature}' does not exist" unless File.exist?(file)
+
+      data = YAML.load_file(file) || {}
+      entries = data['entries'] || []
+
+      # Find the exact entry by path + feature
+      entry = entries.find { |e| e['path'] == path && e['feature'] == feature }
+      unless entry
+        raise Error, "No documentation found for '#{path}' under feature '#{feature}'"
+      end
+
+      # Merge existing methods (strings) with new ones, avoid duplicates
+      existing = Array(entry['methods']).map(&:to_s)
+      merged  = (existing + new_methods.map(&:to_s)).uniq
+      entry['methods'] = merged
+
+      File.write(file, data.to_yaml)
+      entry
+    end
+
     private
 
     # Build the path to a feature’s YAML file

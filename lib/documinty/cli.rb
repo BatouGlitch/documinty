@@ -4,6 +4,7 @@ require 'documinty/store'
 
 module Documinty
   class CLI < Thor
+    MAX_DESC_LENGTH = 80
     def self.exit_on_failure?
       true
     end
@@ -112,7 +113,7 @@ module Documinty
           say(
             set_color("Description📝", label_color) +
               ": " +
-              set_color(e['description'], value_color)
+              set_color(truncate(e['description']), value_color)
           )
         end
 
@@ -150,8 +151,8 @@ module Documinty
       end
     end
 
-    desc "show-feature FEATURE", "List all files documented under FEATURE"
-    def list_f(feature)
+    desc "show_feature FEATURE", "List all files documented under FEATURE"
+    def show_feature(feature)
       begin
         entries = store.entries_for_feature(feature)
       rescue Error => e
@@ -163,13 +164,21 @@ module Documinty
         say "No entries under '#{feature}'.", :red
       else
         say "Entries for '#{feature}':"
+        label_color   = :cyan
+        value_color   = :magenta
         entries.each do |e|
-          say "• #{e['path']} (#{e['node']}) – #{e['description']}", :green
+
+
+          # File
+          say(
+            set_color("📄#{e['path']} | ", label_color) +
+              set_color("(#{e['node']}) – #{e['description']}", value_color)
+          )
         end
       end
     end
 
-    desc "show_feature_involved FEATURE", "Display files under FEATURE grouped by directory"
+    desc "involved_f FEATURE", "Display files under FEATURE grouped by directory"
     def involved_f(feature)
       begin
         entries = store.entries_for_feature(feature)
@@ -212,7 +221,68 @@ module Documinty
       end
     end
 
+    desc "add_methods FILE", "Prompt for and add methods to an existing documented file"
+    option :feature, aliases: '-f', required: true, desc: "Feature name"
+    def add_methods(path)
+      # Ask interactively for comma-separated methods
+      methods_input = ask("Enter comma-separated methods to add to this node🛠️:")
+      method_syms = methods_input
+                      .split(",")
+                      .map(&:strip)
+                      .reject(&:empty?)
+                      .map(&:to_sym)
+
+      begin
+        entry = store.add_methods(
+          path:        path,
+          feature:     options[:feature],
+          new_methods: method_syms
+        )
+        say "✅ Updated methods for #{entry['path']} under '#{entry['feature']}': #{Array(entry['methods']).join(', ')}", :green
+      rescue Error => e
+        say "❌ #{e.message}", :red
+        exit(1)
+      end
+    end
+
+    desc "describe FILE", "Display only the description for FILE"
+    option :feature, aliases: '-f', desc: "If provided, only show description under that feature"
+    def describe(path)
+      entries = store.entries_for(path)
+
+      # If a specific feature is requested, filter to those entries
+      if options[:feature]
+        entries = entries.select { |e| Array(e['features'] || e['feature']).include?(options[:feature]) }
+      end
+
+      if entries.empty?
+        if options[:feature]
+          say "❌ No description found for '#{path}' under feature '#{options[:feature]}'", :red
+        else
+          say "❌ No description found for '#{path}'", :red
+        end
+        exit(1)
+      end
+
+      entries.each do |e|
+        desc = e['description'].to_s.strip
+        if desc.empty?
+          say "ℹ️  No description provided for '#{path}' under '#{e['feature']}'", :yellow
+        else
+          say "📋 #{path}", :cyan
+          say "--→ #{desc}", :green
+        end
+      end
+    end
+
     private
+
+
+    def truncate(text)
+      return "" unless text
+      return text if text.length <= MAX_DESC_LENGTH
+      text[0, MAX_DESC_LENGTH] + "(…)"
+    end
 
     def store
       @store ||= Store.new(Dir.pwd)

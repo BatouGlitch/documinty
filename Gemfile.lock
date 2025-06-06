@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    documinty (0.2.0)
+    documinty (0.3.1)
       thor (~> 1.2)
 
 GEM
