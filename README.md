@@ -22,7 +22,7 @@ Everything you record lives under a `.documinty/` folder in your project. You ca
 
 ### From RubyGems
 
-```bash
+```
 gem install documinty
 # or, if you prefer the short alias:
 # gem install dty
@@ -74,23 +74,55 @@ dty doc app/controllers/sessions_controller.rb -f user-auth -n controller
 ```
 dty show app/controllers/sessions_controller.rb
 ```
+
+Show documentation under a specific feature
+```
+dty show app/controllers/sessions_controller.rb -f user-auth
+```
 ### 6. List all defined features
 ```
 dty features
 ```
 ### 7. Show all files under "user-auth"
 ```
-dty list_f user-auth
+dty show_feature user-auth
 ```
 ### 8. Show file structure under "user-auth"
 ```
-dty involved_f user-auth
+dty involved user-auth
 ```
 ### 9. Search for features that contain "user"
 ```
 dty search_f user
 ```
+### 10. Add or remove methods for a documented file
+To add:
+```
+dty methods path/to/file -f user-auth -a add
+```
 
+To add:
+```
+dty methods path/to/file -f user-auth -a remove
+```
+you will be prompted to add the comma separated methods that you want to add or remove
+### 11. Display description of a documented file
+```
+dty describe path/to/file
+```
+This will display all the descriptions that a file has undear each of the features
+
+Optionally, the feature flag can be passed to specify the description for  a feature
+```
+dty describe path/to/file -f user-auth
+```
+### 12. Update the description for a file 
+```
+dty update_description path/to/file -f user-auth
+```
+NOTE: you must pass the feature when updating the description
+
+You will be prompted to enter the new description for the file under the feature
 ### Project layout
 ```
 .

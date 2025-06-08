@@ -221,10 +221,15 @@ module Documinty
       end
     end
 
-    desc "add_methods FILE", "Prompt for and add methods to an existing documented file"
-    option :feature, aliases: '-f', required: true, desc: "Feature name"
-    def add_methods(path)
-      # Ask interactively for comma-separated methods
+    desc "methods FILE", "Prompt for removing or adding methods to a tagged file pass add or remove as the action"
+    option :feature, aliases: '-f', required: true, desc: 'Feature name to group under'
+    option :action,    aliases: '-a', required: true, desc: 'Node/type label'
+    def methods(path)
+      if options[:action] != 'add' && options[:action] != 'remove'
+        say "❌ Action not supported must be 'add' OR 'remove'", :red
+        exit(1)
+      end
+
       methods_input = ask("Enter comma-separated methods to add to this node🛠️:")
       method_syms = methods_input
                       .split(",")
@@ -233,10 +238,11 @@ module Documinty
                       .map(&:to_sym)
 
       begin
-        entry = store.add_methods(
+        entry = store.methods(
           path:        path,
           feature:     options[:feature],
-          new_methods: method_syms
+          new_methods: method_syms,
+          action: options[:action].to_sym
         )
         say "✅ Updated methods for #{entry['path']} under '#{entry['feature']}': #{Array(entry['methods']).join(', ')}", :green
       rescue Error => e
@@ -265,18 +271,46 @@ module Documinty
       end
 
       entries.each do |e|
-        desc = e['description'].to_s.strip
-        if desc.empty?
+        desc_text = e['description'].to_s.strip
+
+        if desc_text.empty?
           say "ℹ️  No description provided for '#{path}' under '#{e['feature']}'", :yellow
         else
-          say "📋 #{path}", :cyan
-          say "--→ #{desc}", :green
+          if options[:feature]
+            # Only one feature context
+            say "📋 #{path}", :cyan
+          else
+            # Show which feature this description belongs to
+            say(
+              set_color("📋 #{path} ️", :cyan) +
+                ": " +
+                set_color("(FEATURE: #{e['feature']})", :magenta)
+            )
+          end
+          say "--→ #{desc_text}", :green
         end
       end
     end
 
-    private
+    desc "update-description FILE", "Prompt for and update description for FILE under a feature"
+    option :feature, aliases: '-f', required: true, desc: 'Feature name'
+    def update_description(path)
+      begin
+        new_desc = ask("Enter a new description for '#{path}' under '#{options[:feature]}':")
+        entry = store.update_description(
+          path:            path,
+          feature:         options[:feature],
+          new_description: new_desc
+        )
+        say "✅ Description updated for #{entry['path']} under '#{entry['feature']}':", :green
+        say "   #{entry['description']}", :green
+      rescue Error => e
+        say "❌ #{e.message}", :red
+        exit(1)
+      end
+    end
 
+    private
 
     def truncate(text)
       return "" unless text

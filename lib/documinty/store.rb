@@ -108,7 +108,7 @@ module Documinty
     # @param feature [String]    feature name (must already exist on that entry)
     # @param new_methods [Array<Symbol>]  list of symbols to add
     # @return [Hash] the updated entry
-    def add_methods(path:, feature:, new_methods:)
+    def methods(path:, feature:, new_methods:, action:)
       file = feature_file(feature)
       raise Error, "Feature '#{feature}' does not exist" unless File.exist?(file)
 
@@ -123,10 +123,39 @@ module Documinty
 
       # Merge existing methods (strings) with new ones, avoid duplicates
       existing = Array(entry['methods']).map(&:to_s)
-      merged  = (existing + new_methods.map(&:to_s)).uniq
+      if action == :add
+        merged  = (existing + new_methods.map(&:to_s)).uniq
+      else
+        merged  = (existing - new_methods.map(&:to_s)).uniq
+      end
       entry['methods'] = merged
 
       File.write(file, data.to_yaml)
+      entry
+    end
+
+    # Update the description for a documented file under a given feature
+    # @param path [String]          relative file path
+    # @param feature [String]       feature name
+    # @param new_description [String]
+    # @return [Hash] the updated entry
+    def update_description(path:, feature:, new_description:)
+      file = feature_file(feature)
+      unless File.exist?(file)
+        raise Error, "Feature '#{feature}' does not exist"
+      end
+
+      data     = YAML.load_file(file) || {}
+      entries  = data['entries'] ||= []
+
+      entry = entries.find { |e| e['path'] == path && e['feature'] == feature }
+      unless entry
+        raise Error, "No documentation found for '#{path}' under feature '#{feature}'"
+      end
+
+      entry['description'] = new_description.to_s.strip
+      File.write(file, data.to_yaml)
+
       entry
     end
 
